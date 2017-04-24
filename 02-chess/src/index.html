@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="styles/chessboard.css">
+    <link rel="stylesheet" href="styles/app.css">
   </head>
   <body>
-    <h1>04-chess</h4>
+    <h1>♔ Chess ♞</h1>
+    <div id="controls">
+      <p>Game ID: <span id="game-id"></span></p>
+      <button type="button" name="button" id="restart">Restart</button><br />
+      <button type="button" name="button" id="host">Host</button><br />
+      <button type="button" name="button" id="join">Join</button>
+      <input type="text" name="game-name" placeholder="name of game" id="join-input">
+    </div>
+    <div id="board-area">
+      <div id="board" style="width: 400px"></div>
+    </div>
+    <script src="app.js"></script>
   </body>
 </html>
-
