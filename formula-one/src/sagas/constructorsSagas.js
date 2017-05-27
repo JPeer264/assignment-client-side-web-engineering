@@ -14,9 +14,7 @@ const getConstructors = function* (api) {
   }
 };
 
-// export default JUST if there is one export,
-// if there are 2 exports, delete the next line
-export default getConstructors;
 export {
+  // eslint-disable-next-line
   getConstructors,
 };

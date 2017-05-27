@@ -7,12 +7,12 @@ const api = (baseURL = 'http://ergast.com/api/f1/') => {
     },
   });
 
-  // Step 1. define the standardApi
   const getConstructors = () => standardApi.get('/constructors.json');
+  const getDriversByConstructorId = constructorId => standardApi.get(`/constructors/${constructorId}/drivers.json`);
 
-  // Step 2. return the defined standardApi
   return {
     getConstructors,
+    getDriversByConstructorId,
   };
 };
 

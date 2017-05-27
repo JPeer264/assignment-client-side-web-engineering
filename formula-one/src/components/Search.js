@@ -8,7 +8,7 @@ class Search extends Component {
 
     this.handleSelectChange = this.handleSelectChange.bind(this);
     this.state = {
-      value: [],
+      value: '',
     };
   }
 
@@ -19,9 +19,7 @@ class Search extends Component {
 
   render() {
     return (
-      // eslint-disable-next-line
       <Select
-        multi
         simpleValue
         value={this.state.value}
         placeholder={this.props.placeholder}
