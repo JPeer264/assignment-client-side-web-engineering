@@ -14,11 +14,9 @@ const getDriversByConstructorId = function* (api, action) {
 
     yield put(driversActions.driversSuccess(driversArray));
   } else {
-    if (constructorId === null) {
-      yield put(driversActions.driversFlush());
-    } else {
-      yield put(driversActions.driversFailure());
-    }
+    yield constructorId === null
+      ? put(driversActions.driversFlush())
+      : put(driversActions.driversFailure());
   }
 };
 
