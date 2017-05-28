@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "apisauce": "^0.13.0",
+    "husky": "^0.13.3",
     "normalizr": "^3.2.3",
     "prop-types": "^15.5.10",
     "react": "^15.5.4",
@@ -28,6 +29,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "lint": "eslint src",
+    "prepush": "npm run lint",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   }
