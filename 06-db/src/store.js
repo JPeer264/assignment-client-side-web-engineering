@@ -56,6 +56,9 @@ export default class Store {
         const todos = this.getLocalStorage()
         let k
 
+        console.log(todos);
+
+
         callback(todos.filter(todo => {
             for (k in query) {
                 if (query[k] !== todo[k]) {

@@ -1,7 +1,12 @@
 import PouchDB from 'pouchdb'
 
 const localDB = new PouchDB('mmt-ss2017')
-const remoteDB = new PouchDB('https://couchdb.5k20.com/mmt-ss2017')
+const remoteDB = new PouchDB('https://couchdb.5k20.com/mmt-ss2017', {
+    auth: {
+        username: 'jstoecklmair',
+        password: 'test',
+    }
+})
 
 export default class Store {
     /**
@@ -9,6 +14,11 @@ export default class Store {
      * @param {function()} [callback] Called when the Store is ready
      */
     constructor(name, callback) {
+        /**
+         * @type {Storage}
+         */
+        const localStorage = window.localStorage
+
         /**
          * @type {ItemList}
          */
@@ -35,6 +45,9 @@ export default class Store {
         }
     }
 
+    getAll() {
+    }
+
     /**
      * Find items with properties matching those on query.
      *
@@ -47,7 +60,9 @@ export default class Store {
 	 * })
      */
     find(query, callback) {
+        const todos = this.getStore()
 
+        callback(todos)
     }
 
     /**
@@ -67,7 +82,13 @@ export default class Store {
      * @param {function()} [callback] Called when item is inserted
      */
     insert(item, callback) {
+        item._id = item.id.toString()
 
+        remoteDB.put(item).then((response) => {
+            callback(null, response)
+        }).catch((err) => {
+            callback(err)
+        })
     }
 
     /**
@@ -77,7 +98,6 @@ export default class Store {
      * @param {function(ItemList)|function()} [callback] Called when records matching query are removed
      */
     remove(query, callback) {
-
     }
 
     /**
@@ -86,6 +106,6 @@ export default class Store {
      * @param {function(number, number, number)} callback Called when the count is completed
      */
     count(callback) {
-
+        callback(100)
     }
 }
