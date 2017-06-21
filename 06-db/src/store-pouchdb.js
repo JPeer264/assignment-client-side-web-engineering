@@ -14,38 +14,47 @@ export default class Store {
      * @param {function()} [callback] Called when the Store is ready
      */
     constructor(name, callback) {
-        /**
-         * @type {Storage}
-         */
-        const localStorage = window.localStorage
 
         /**
-         * @type {ItemList}
-         */
-        let liveTodos
-
-        /**
-         * Read the local ItemList from localStorage.
+         * Read the local ItemList from localDB.
          *
          * @returns {ItemList} Current array of todos
          */
         this.getStore = () => {
+            return new Promise(resolve => {
+                localDB.allDocs({
+                    include_docs: true,
+                }).then(docs => {
+                    const todos = docs.rows.map((row) => {
+                        const doc = row.doc
+                        return {
+                            // the TODO-application itself relies on id instead of _id
+                            id: doc._id,
+                            title: doc.title,
+                            completed: doc.completed,
+                            _rev: doc._rev,
+                        }
+                    })
+
+                    resolve(todos)
+                }).catch(err => {
+                    console.log(err)
+                })
+            })
         }
 
-        /**
-         * Write the local ItemList to localStorage.
-         *
-         * @param {ItemList} todos Array of todos to write
-         */
-        this.setStore = (todos) => {
-        }
+        localDB
+            .sync(remoteDB, {
+                live: true,
+                retry: true
+            })
+            .on('error', err => {
+                console.log(err)
+            })
 
         if (callback) {
             callback()
         }
-    }
-
-    getAll() {
     }
 
     /**
@@ -60,9 +69,18 @@ export default class Store {
 	 * })
      */
     find(query, callback) {
-        const todos = this.getStore()
+        this.getStore().then(todos => {
+            const filtered = todos.filter(todo => {
+                for (let k in query) {
+                    if (query[k] !== todo[k]) {
+                        return false
+                    }
+                }
+                return true
+            })
 
-        callback(todos)
+            callback(filtered)
+        })
     }
 
     /**
@@ -72,7 +90,17 @@ export default class Store {
      * @param {function()} [callback] Called when partialRecord is applied
      */
     update(update, callback) {
+        this.getStore().then(todos => {
+            const todoToUpdate = todos.find(todo => todo.id === update.id.toString())
+            const toUpdate = Object.assign({}, todoToUpdate, update)
 
+            localDB.put({
+                _id: toUpdate.id.toString(),
+                title: toUpdate.title,
+                completed: toUpdate.completed,
+                _rev: toUpdate._rev
+            }).then(callback())
+        })
     }
 
     /**
@@ -82,13 +110,11 @@ export default class Store {
      * @param {function()} [callback] Called when item is inserted
      */
     insert(item, callback) {
-        item._id = item.id.toString()
-
-        remoteDB.put(item).then((response) => {
-            callback(null, response)
-        }).catch((err) => {
-            callback(err)
-        })
+        localDB.put({
+            _id: item.id.toString(),
+            title: item.title,
+            completed: item.completed,
+        }).then(() => callback())
     }
 
     /**
@@ -98,6 +124,32 @@ export default class Store {
      * @param {function(ItemList)|function()} [callback] Called when records matching query are removed
      */
     remove(query, callback) {
+        this.getStore().then(todos => {
+            const keep = []
+            let deleteArray = []
+
+            todos.forEach(todo => {
+                for (let k in query) {
+                    if (query[k].toString() === todo[k].toString()) {
+                        return deleteArray.push(todo)
+                    }
+                }
+
+                keep.push(todo)
+            })
+
+            deleteArray = deleteArray.map(todo => ({
+                _id: todo.id,
+                title: todo.title,
+                completed: todo.completed,
+                _rev: todo._rev,
+                _deleted: true
+            }))
+
+            localDB
+                .bulkDocs(deleteArray)
+                .then(() => callback(keep))
+        })
     }
 
     /**
@@ -106,6 +158,15 @@ export default class Store {
      * @param {function(number, number, number)} callback Called when the count is completed
      */
     count(callback) {
-        callback(100)
+        this.getStore().then(todos => {
+            const total = todos.length
+            const completed = todos.reduce((completedCount, curTodo) => {
+                if (curTodo.completed) {
+                    ++completedCount
+                }
+                return completedCount
+            }, 0)
+            callback(total, total - completed, completed)
+        })
     }
 }
